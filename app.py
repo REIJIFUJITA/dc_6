@@ -1,7 +1,8 @@
-from flask import Flask, redirect, url_for, session, render_template, request
-from models import db, User
+from flask import Flask, jsonify, request, redirect, url_for, session, render_template, flash, g
+from models import db, User ,Routine
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
+from datetime import datetime
 import os
 
 # Flask アプリの初期化
@@ -64,10 +65,56 @@ def callback():
             db.session.add(user)
             db.session.commit()
 
+        session["user_email"] = email #ユーザーをセッションに保存
+
         return render_template("profile.html", name=name, email=email)
     except Exception as e:
         print("Error:", e)  # エラーメッセージを出力
         return "認証に失敗しました。"
+    
+#現在のユーザーを取得する関数
+@app.before_request
+def load_logged_in_user():
+    user_email = session.get('user_email')
+    if user_email is None:
+        g.current_user = None
+    else:
+        g.current_user = User.query.filter_by(email=user_email).first()
+    
+# ルーティーン作成フォームの表示
+@app.route('/routines/new',methods=['GET'])
+def new_routine():
+    users = User.query.all()
+    return render_template('new_routine.html',users=users)
+
+# ルーティーン作成処理
+@app.route('/routines', methods=['POST'])
+def create_routine_from_form():
+    if g.current_user is None:
+        flash('ログインが必要です','error')
+        return redirect(url_for('login'))
+    
+    name = request.form.get('name')
+    wake_up_time  = request.form.get('wake_up_time')
+    is_active = request.form.get('is_active') == 'on'
+    user_id = g.current_user.id
+
+    #フォームバリデーション
+    if not name or not wake_up_time:
+        flash('すべてのフィールドを入力してください','error')
+        return redirect(url_for('new_routine'))
+    
+    try:
+        # データベースにルーティーンを保存
+        wake_up_time = datetime.strptime(wake_up_time, "%H:%M").time()
+        routine = Routine(name=name,wake_up_time=wake_up_time,is_active=is_active,user_id=user_id)
+        db.session.add(routine)
+        db.session.commit()
+        flash('ルーティーンが正常に作成されました','success')
+        return redirect(url_for('new_routine'))
+    except Exception as e:
+        flash(f'エラーが発生しました: {e}','error')
+        return redirect(url_for('new_routine'))
 
 # 初回実行時のデータベース作成
 with app.app_context():

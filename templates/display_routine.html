@@ -1,0 +1,9 @@
+{% block content %}
+    <h1>作成したルーティーンの一覧</h1>
+    <a href="/create">新しいルーティーンの作成</a>
+    {% for post in posts %}
+    <div>
+        <p>{{post.id}} : <b>{{post.title}}</b> {{post.body}}</p>
+    </div>
+    {% endfor %}
+{% endblock %}

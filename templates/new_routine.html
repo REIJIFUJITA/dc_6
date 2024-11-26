@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新しいルーティーンを作成</title>
+</head>
+<body>
+    <h1>新しいルーティーンを作成</h1>
+
+     <!-- フラッシュメッセージ表示 -->
+     {% with messages = get_flashed_messages() %}
+     {% if messages %}
+         <ul>
+             {% for message in messages %}
+                 <li>{{ message }}</li>
+             {% endfor %}
+         </ul>
+       {% endif %}
+    {% endwith %}
+
+    <form action="/routines" method="POST">
+        <label for="name">ルーティーン名:</label><br>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="wake_up_time">起床時間 (HH:MM):</label><br>
+        <input type="time" id="wake_up_time" name="wake_up_time" required><br><br>
+
+        <label for="is_active">アクティブ:</label>
+        <input type="checkbox" id="is_active" name="is_active"><br><br>
+
+        <! -- 現在のユーザーIDを隠しフィールドで送信 -->
+        <input type="hidden" name="user_id" value="{{ g.current_user.id }}">
+
+        <button type="submit">作成</button>
+    </form>
+
+    <a href="/">トップページに戻る</a>
+</body>
+</html>
