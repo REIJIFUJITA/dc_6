@@ -23,7 +23,9 @@ SCOPES = ["https://www.googleapis.com/auth/userinfo.email",
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if g.current_user: #　ログイン済みのユーザーがいる場合
+        return redirect(url_for('profile')) # プロフィール画面にリダイレクト
+    return render_template("index.html") #　ログインしていない場合のトップページ
 
 @app.route("/login")
 def login():
@@ -67,7 +69,7 @@ def callback():
 
         session["user_email"] = email #ユーザーをセッションに保存
 
-        return render_template("profile.html", name=name, email=email)
+        return redirect(url_for('profile'))
     except Exception as e:
         print("Error:", e)  # エラーメッセージを出力
         return "認証に失敗しました。"
@@ -80,6 +82,14 @@ def load_logged_in_user():
         g.current_user = None
     else:
         g.current_user = User.query.filter_by(email=user_email).first()
+
+# プロフィール画面
+@app.route("/profile",methods=["GET"])
+def profile():
+    if g.current_user is None:
+        flash('ログインが必要です','error')
+        return redirect(url_for('login'))
+    return render_template('profile.html',name=g.current_user.name,email=g.current_user.email)
     
 # ルーティーン作成フォームの表示
 @app.route('/routines/new',methods=['GET'])
