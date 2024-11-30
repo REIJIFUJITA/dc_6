@@ -1,9 +1,16 @@
-{% block content %}
-    <h1>作成したルーティーンの一覧</h1>
-    <a href="/create">新しいルーティーンの作成</a>
-    {% for post in posts %}
+<h1>作成したルーティーンの一覧</h1>
+{% if routines %}
+    {% for routine in routines %}
     <div>
-        <p>{{post.id}} : <b>{{post.title}}</b> {{post.body}}</p>
+        <p>{{ routine.name }} : <b>{{ routine.wake_up_time }}</b></p>
+        <a href="/routines/edit/{{ routine.id }}">編集</a>
+        <form action="/routines/delete/{{ routine.id }}" method="POST" style="display:inline;">
+            <button type="submit">削除</button>
+        </form>
     </div>
     {% endfor %}
-{% endblock %}
+{% else %}
+    <p>まだルーティーンがありません。</p>
+{% endif %}
+<a href="/routines/new">新しいルーティーンを作成</a>
+<a href="/">トップページに戻る</a>

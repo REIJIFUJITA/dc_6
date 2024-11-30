@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーティーンを編集</title>
+</head>
+<body>
+    <h1>ルーティーンを編集</h1>
+    <form action="/routines/edit/{{ routine.id }}" method="POST">
+        <label for="name">ルーティーン名:</label><br>
+        <input type="text" id="name" name="name" value="{{ routine.name }}" required><br><br>
+
+        <label for="wake_up_time">起床時間 (HH:MM):</label><br>
+        <input type="time" id="wake_up_time" name="wake_up_time" value="{{ routine.wake_up_time }}" required><br><br>
+
+        <label for="is_active">アクティブ:</label>
+        <input type="checkbox" id="is_active" name="is_active" {% if routine.is_active %}checked{% endif %}><br><br>
+
+        <button type="submit">更新</button>
+    </form>
+    <a href="/routines/display_routine">戻る</a>
+</body>
+</html>

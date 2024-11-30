@@ -111,10 +111,66 @@ def create_routine_from_form():
         db.session.add(routine)
         db.session.commit()
         flash('ルーティーンが正常に作成されました','success')
-        return redirect(url_for('new_routine'))
+        return render_template('profile.html',name=g.current_user.name)
     except Exception as e:
         flash(f'エラーが発生しました: {e}','error')
         return redirect(url_for('new_routine'))
+
+#　ルーティーンの一覧表示
+@app.route('/routines/display_routine', methods=['GET'])
+def display_routine():
+    if g.current_user is None:
+        flash('ログインが必要です', 'error')
+        return redirect(url_for('login'))
+
+    # 現在ログインしているユーザーのルーティーンのみを取得
+    routines = Routine.query.filter_by(user_id=g.current_user.id).all()
+    return render_template('display_routine.html', routines=routines)
+
+# ルーティーンの編集処理
+@app.route('/routines/edit/<int:routine_id>', methods=['GET', 'POST'])
+def edit_routine(routine_id):
+    routine = Routine.query.get_or_404(routine_id)
+    if routine.user_id != g.current_user.id:
+        flash('権限がありません', 'error')
+        return redirect(url_for('display_routine'))
+
+    if request.method == 'POST':
+        routine.name = request.form.get('name')
+        wake_up_time = request.form.get('wake_up_time')
+        routine.is_active = request.form.get('is_active') == 'on'
+
+        if not routine.name or not wake_up_time:
+            flash('すべてのフィールドを入力してください', 'error')
+            return redirect(url_for('edit_routine', routine_id=routine.id))
+
+        try:
+            routine.wake_up_time = datetime.strptime(wake_up_time, "%H:%M").time()
+            db.session.commit()
+            flash('ルーティーンが正常に更新されました', 'success')
+            return redirect(url_for('display_routine'))
+        except Exception as e:
+            flash(f'エラーが発生しました: {e}', 'error')
+            return redirect(url_for('edit_routine', routine_id=routine.id))
+    
+    return render_template('edit_routine.html', routine=routine)
+
+#　ルーティーンの削除処理
+@app.route('/routines/delete/<int:routine_id>', methods=['POST'])
+def delete_routine(routine_id):
+    routine = Routine.query.get_or_404(routine_id)
+    if routine.user_id != g.current_user.id:
+        flash('権限がありません', 'error')
+        return redirect(url_for('display_routine'))
+
+    try:
+        db.session.delete(routine)
+        db.session.commit()
+        flash('ルーティーンが正常に削除されました', 'success')
+        return redirect(url_for('display_routine'))
+    except Exception as e:
+        flash(f'エラーが発生しました: {e}', 'error')
+        return redirect(url_for('display_routine'))
 
 # 初回実行時のデータベース作成
 with app.app_context():
