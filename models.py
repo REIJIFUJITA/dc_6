@@ -18,4 +18,14 @@ class Routine(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     user = db.relationship('User', backref=db.backref('routines', lazy=True))
-    
+    tasks = db.relationship('Task', backref='routine', lazy=True)
+
+# タスクモデル
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task_name = db.Column(db.String(120), nullable=False)
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    song_speed = db.Column(db.String(50), nullable=True)
+    song_mood = db.Column(db.String(50), nullable=True)
+    routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'), nullable=False)

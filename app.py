@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request, redirect, url_for, session, render_template, flash, g
-from models import db, User ,Routine
+from models import db, User ,Routine,Task
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from datetime import datetime
@@ -181,6 +181,107 @@ def delete_routine(routine_id):
     except Exception as e:
         flash(f'エラーが発生しました: {e}', 'error')
         return redirect(url_for('display_routines'))
+
+@app.route('/tasks/new/<int:routine_id>', methods=['GET'])
+def new_task(routine_id):
+    routine = Routine.query.get_or_404(routine_id)
+    return render_template('new_task.html', routine=routine)
+
+@app.route('/tasks', methods=['POST'])
+def create_task():
+    if g.current_user is None:
+        flash('ログインが必要です', 'error')
+        return redirect(url_for('login'))
+
+    task_name = request.form.get('task_name')
+    start_time = request.form.get('start_time')
+    end_time = request.form.get('end_time')
+    song_speed = request.form.get('song_speed')
+    song_mood = request.form.get('song_mood')
+    routine_id = request.form.get('routine_id')
+
+    if not task_name or not start_time or not end_time:
+        flash('すべてのフィールドを入力してください', 'error')
+        return redirect(url_for('new_task', routine_id=routine_id))
+
+    try:
+        start_time = datetime.strptime(start_time, "%H:%M").time()
+        end_time = datetime.strptime(end_time, "%H:%M").time()
+
+        task = Task(
+            task_name=task_name,
+            start_time=start_time,
+            end_time=end_time,
+            song_speed=song_speed,
+            song_mood=song_mood,
+            routine_id=routine_id
+        )
+        db.session.add(task)
+        db.session.commit()
+        flash('タスクが正常に作成されました', 'success')
+        return redirect(url_for('display_tasks', routine_id=routine_id))
+    except Exception as e:
+        flash(f'エラーが発生しました: {e}', 'error')
+        return redirect(url_for('new_task', routine_id=routine_id))
+
+@app.route('/tasks/<int:routine_id>', methods=['GET'])
+def display_tasks(routine_id):
+    routine = Routine.query.get_or_404(routine_id)
+    if routine.user_id != g.current_user.id:
+        flash('権限がありません', 'error')
+        return redirect(url_for('display_routines'))
+
+    tasks = Task.query.filter_by(routine_id=routine_id).all()
+    return render_template('display_tasks.html', routine=routine, tasks=tasks)
+
+@app.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
+def edit_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    routine = Routine.query.get_or_404(task.routine_id)
+    if routine.user_id != g.current_user.id:
+        flash('権限がありません', 'error')
+        return redirect(url_for('display_tasks', routine_id=task.routine_id))
+
+    if request.method == 'POST':
+        task.task_name = request.form.get('task_name')
+        start_time = request.form.get('start_time')
+        end_time = request.form.get('end_time')
+        task.song_speed = request.form.get('song_speed')
+        task.song_mood = request.form.get('song_mood')
+
+        if not task.task_name or not start_time or not end_time:
+            flash('すべてのフィールドを入力してください', 'error')
+            return redirect(url_for('edit_task', task_id=task.id))
+
+        try:
+            task.start_time = datetime.strptime(start_time, "%H:%M").time()
+            task.end_time = datetime.strptime(end_time, "%H:%M").time()
+            db.session.commit()
+            flash('タスクが正常に更新されました', 'success')
+            return redirect(url_for('display_tasks', routine_id=task.routine_id))
+        except Exception as e:
+            flash(f'エラーが発生しました: {e}', 'error')
+            return redirect(url_for('edit_task', task_id=task.id))
+
+    return render_template('edit_task.html', task=task)
+
+@app.route('/tasks/delete/<int:task_id>', methods=['POST'])
+def delete_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    routine = Routine.query.get_or_404(task.routine_id)
+    if routine.user_id != g.current_user.id:
+        flash('権限がありません', 'error')
+        return redirect(url_for('display_tasks', routine_id=task.routine_id))
+
+    try:
+        db.session.delete(task)
+        db.session.commit()
+        flash('タスクが正常に削除されました', 'success')
+        return redirect(url_for('display_tasks', routine_id=task.routine_id))
+    except Exception as e:
+        flash(f'エラーが発生しました: {e}', 'error')
+        return redirect(url_for('display_tasks', routine_id=task.routine_id))
+
 
 # 初回実行時のデータベース作成
 with app.app_context():

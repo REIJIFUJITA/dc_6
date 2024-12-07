@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タスク一覧</title>
+</head>
+<body>
+    <h1>タスク一覧 (ルーティーン: {{ routine.name }})</h1>
+
+    {% if tasks %}
+        {% for task in tasks %}
+        <div style="border: #87cefa solid 1px; padding: 10px; margin-bottom: 10px;">
+            <p>タスク名: <b>{{ task.task_name }}</b></p>
+            <p>開始時間: {{ task.start_time }} / 終了時間: {{ task.end_time }}</p>
+            <p>曲のスピード: {{ task.song_speed }}</p>
+            <p>曲のムード: {{ task.song_mood }}</p>
+            <a href="/tasks/edit/{{ task.id }}">編集</a>
+            <form action="/tasks/delete/{{ task.id }}" method="POST" style="display:inline;">
+                <button type="submit">削除</button>
+            </form>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>まだタスクがありません。</p>
+    {% endif %}
+
+    <a href="/tasks/new/{{ routine.id }}">新しいタスクを作成</a>
+    <a href="/routines/edit/{{ routine.id }}">ルーティーン編集に戻る</a>
+</body>
+</html>

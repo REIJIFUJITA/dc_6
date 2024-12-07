@@ -6,6 +6,7 @@
     <div style="border: #ff69b4 solid 1px; font-size: 100%; padding: 10px; box-shadow: 0 5px 7px 0 #c0c0c0;width: 370px">
         <p><b>{{ routine.name }}</b></br>起床時間:<b>{{ routine.wake_up_time }}</b> アクティブ状態:<b>{{routine.is_active}}</b></p>
         <a href="/routines/edit/{{ routine.id }}">編集</a>
+        <a href="/tasks/{{ routine.id }}">タスクを見る</a>
         <form action="/routines/delete/{{ routine.id }}" method="POST" style="display:inline;">
             <button type="submit">削除</button>
         </form>
