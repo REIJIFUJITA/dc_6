@@ -84,12 +84,16 @@ def load_logged_in_user():
         g.current_user = User.query.filter_by(email=user_email).first()
 
 # プロフィール画面
-@app.route("/profile",methods=["GET"])
+@app.route("/profile", methods=["GET"])
 def profile():
     if g.current_user is None:
-        flash('ログインが必要です','error')
+        flash('ログインが必要です', 'error')
         return redirect(url_for('login'))
-    return render_template('profile.html',name=g.current_user.name,email=g.current_user.email)
+    
+    # 現在のユーザーのルーティーンを取得
+    routines = Routine.query.filter_by(user_id=g.current_user.id).all()
+    return render_template('profile.html', name=g.current_user.name, email=g.current_user.email, routines=routines)
+
     
 # ルーティーン作成フォームの表示
 @app.route('/routines/new',methods=['GET'])
@@ -101,30 +105,29 @@ def new_routine():
 @app.route('/routines', methods=['POST'])
 def create_routine_from_form():
     if g.current_user is None:
-        flash('ログインが必要です','error')
+        flash('ログインが必要です', 'error')
         return redirect(url_for('login'))
     
     name = request.form.get('name')
-    wake_up_time  = request.form.get('wake_up_time')
+    wake_up_time = request.form.get('wake_up_time')
     is_active = request.form.get('is_active') == 'on'
     user_id = g.current_user.id
 
-    #フォームバリデーション
     if not name or not wake_up_time:
-        flash('すべてのフィールドを入力してください','error')
+        flash('すべてのフィールドを入力してください', 'error')
         return redirect(url_for('new_routine'))
     
     try:
-        # データベースにルーティーンを保存
         wake_up_time = datetime.strptime(wake_up_time, "%H:%M").time()
-        routine = Routine(name=name,wake_up_time=wake_up_time,is_active=is_active,user_id=user_id)
+        routine = Routine(name=name, wake_up_time=wake_up_time, is_active=is_active, user_id=user_id)
         db.session.add(routine)
         db.session.commit()
-        flash('ルーティーンが正常に作成されました','success')
-        return redirect(url_for('display_routines'))
+        flash('ルーティーンが正常に作成されました', 'success')
+        return redirect(url_for('profile'))
     except Exception as e:
-        flash(f'エラーが発生しました: {e}','error')
+        flash(f'エラーが発生しました: {e}', 'error')
         return redirect(url_for('new_routine'))
+
 
 #　ルーティーンの一覧表示
 @app.route('/routines/display_routines', methods=['GET'])
@@ -143,7 +146,7 @@ def edit_routine(routine_id):
     routine = Routine.query.get_or_404(routine_id)
     if routine.user_id != g.current_user.id:
         flash('権限がありません', 'error')
-        return redirect(url_for('display_routines'))
+        return redirect(url_for('profile'))
 
     if request.method == 'POST':
         routine.name = request.form.get('name')
@@ -158,12 +161,13 @@ def edit_routine(routine_id):
             routine.wake_up_time = datetime.strptime(wake_up_time, "%H:%M").time()
             db.session.commit()
             flash('ルーティーンが正常に更新されました', 'success')
-            return redirect(url_for('display_routines'))
+            return redirect(url_for('profile'))
         except Exception as e:
             flash(f'エラーが発生しました: {e}', 'error')
             return redirect(url_for('edit_routine', routine_id=routine.id))
     
     return render_template('edit_routine.html', routine=routine)
+
 
 #　ルーティーンの削除処理
 @app.route('/routines/delete/<int:routine_id>', methods=['POST'])
