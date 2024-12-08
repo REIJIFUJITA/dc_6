@@ -6,7 +6,7 @@
     <title>新しいタスクを作成</title>
 </head>
 <body>
-    <h1>新しいタスクを作成 (ルーティーン: {{ routine.name }})</h1>
+    <h1>新しいタスクを作成 (ルーティーン: {{ routine.name }}({{routine.wake_up_time}}))</h1>
 
     <!-- フラッシュメッセージ表示 -->
     {% with messages = get_flashed_messages() %}
@@ -40,6 +40,6 @@
         <button type="submit">作成</button>
     </form>
 
-    <a href="/tasks/{{ routine.id }}">タスク一覧に戻る</a>
+    <a href="/routines/edit/{{ routine.id }}">戻る</a>
 </body>
 </html>

@@ -148,6 +148,8 @@ def edit_routine(routine_id):
         flash('権限がありません', 'error')
         return redirect(url_for('profile'))
 
+    tasks = Task.query.filter_by(routine_id=routine_id).all()
+
     if request.method == 'POST':
         routine.name = request.form.get('name')
         wake_up_time = request.form.get('wake_up_time')
@@ -161,12 +163,12 @@ def edit_routine(routine_id):
             routine.wake_up_time = datetime.strptime(wake_up_time, "%H:%M").time()
             db.session.commit()
             flash('ルーティーンが正常に更新されました', 'success')
-            return redirect(url_for('profile'))
+            return redirect(url_for('edit_routine', routine_id=routine.id))
         except Exception as e:
             flash(f'エラーが発生しました: {e}', 'error')
             return redirect(url_for('edit_routine', routine_id=routine.id))
     
-    return render_template('edit_routine.html', routine=routine)
+    return render_template('edit_routine.html', routine=routine, tasks=tasks)
 
 
 #　ルーティーンの削除処理
@@ -206,7 +208,7 @@ def create_task():
 
     if not task_name or not start_time or not end_time:
         flash('すべてのフィールドを入力してください', 'error')
-        return redirect(url_for('new_task', routine_id=routine_id))
+        return redirect(url_for('edit_routine', routine_id=routine_id))
 
     try:
         start_time = datetime.strptime(start_time, "%H:%M").time()
@@ -223,20 +225,10 @@ def create_task():
         db.session.add(task)
         db.session.commit()
         flash('タスクが正常に作成されました', 'success')
-        return redirect(url_for('display_tasks', routine_id=routine_id))
+        return redirect(url_for('edit_routine', routine_id=routine_id))
     except Exception as e:
         flash(f'エラーが発生しました: {e}', 'error')
-        return redirect(url_for('new_task', routine_id=routine_id))
-
-@app.route('/tasks/<int:routine_id>', methods=['GET'])
-def display_tasks(routine_id):
-    routine = Routine.query.get_or_404(routine_id)
-    if routine.user_id != g.current_user.id:
-        flash('権限がありません', 'error')
-        return redirect(url_for('display_routines'))
-
-    tasks = Task.query.filter_by(routine_id=routine_id).all()
-    return render_template('display_tasks.html', routine=routine, tasks=tasks)
+        return redirect(url_for('edit_routine', routine_id=routine_id))
 
 @app.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
 def edit_task(task_id):
@@ -244,7 +236,7 @@ def edit_task(task_id):
     routine = Routine.query.get_or_404(task.routine_id)
     if routine.user_id != g.current_user.id:
         flash('権限がありません', 'error')
-        return redirect(url_for('display_tasks', routine_id=task.routine_id))
+        return redirect(url_for('edit_routine', routine_id=task.routine_id))
 
     if request.method == 'POST':
         task.task_name = request.form.get('task_name')
@@ -262,12 +254,13 @@ def edit_task(task_id):
             task.end_time = datetime.strptime(end_time, "%H:%M").time()
             db.session.commit()
             flash('タスクが正常に更新されました', 'success')
-            return redirect(url_for('display_tasks', routine_id=task.routine_id))
+            return redirect(url_for('edit_routine', routine_id=task.routine_id))
         except Exception as e:
             flash(f'エラーが発生しました: {e}', 'error')
             return redirect(url_for('edit_task', task_id=task.id))
 
     return render_template('edit_task.html', task=task)
+
 
 @app.route('/tasks/delete/<int:task_id>', methods=['POST'])
 def delete_task(task_id):
@@ -275,16 +268,16 @@ def delete_task(task_id):
     routine = Routine.query.get_or_404(task.routine_id)
     if routine.user_id != g.current_user.id:
         flash('権限がありません', 'error')
-        return redirect(url_for('display_tasks', routine_id=task.routine_id))
+        return redirect(url_for('edit_routine', routine_id=task.routine_id))
 
     try:
         db.session.delete(task)
         db.session.commit()
         flash('タスクが正常に削除されました', 'success')
-        return redirect(url_for('display_tasks', routine_id=task.routine_id))
+        return redirect(url_for('edit_routine', routine_id=task.routine_id))
     except Exception as e:
         flash(f'エラーが発生しました: {e}', 'error')
-        return redirect(url_for('display_tasks', routine_id=task.routine_id))
+        return redirect(url_for('edit_routine', routine_id=task.routine_id))
 
 
 # 初回実行時のデータベース作成
