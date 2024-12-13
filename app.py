@@ -177,16 +177,16 @@ def delete_routine(routine_id):
     routine = Routine.query.get_or_404(routine_id)
     if routine.user_id != g.current_user.id:
         flash('権限がありません', 'error')
-        return redirect(url_for('display_routines'))
+        return redirect(url_for('profile'))
 
     try:
         db.session.delete(routine)
         db.session.commit()
         flash('ルーティーンが正常に削除されました', 'success')
-        return redirect(url_for('display_routines'))
+        return redirect(url_for('profile'))
     except Exception as e:
         flash(f'エラーが発生しました: {e}', 'error')
-        return redirect(url_for('display_routines'))
+        return redirect(url_for('profile'))
 
 @app.route('/tasks/new/<int:routine_id>', methods=['GET'])
 def new_task(routine_id):

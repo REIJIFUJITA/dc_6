@@ -30,7 +30,12 @@
         <input type="time" id="end_time" name="end_time" required><br><br>
 
         <label for="song_speed">曲のスピード:</label><br>
-        <input type="text" id="song_speed" name="song_speed"><br><br>
+        <select id="song_speed" name="song_speed" required>
+            <option value="" disabled selected>選択してください</option>
+            <option value="ゆっくり">ゆっくり</option>
+            <option value="普通">普通</option>
+            <option value="速い">速い</option>
+        </select><br><br>
 
         <label for="song_mood">曲のムード:</label><br>
         <input type="text" id="song_mood" name="song_mood"><br><br>

@@ -18,7 +18,7 @@ class Routine(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     user = db.relationship('User', backref=db.backref('routines', lazy=True))
-    tasks = db.relationship('Task', backref='routine', lazy=True)
+    tasks = db.relationship('Task', backref='routine', lazy=True, cascade='all, delete-orphan' )
 
 # タスクモデル
 class Task(db.Model):
