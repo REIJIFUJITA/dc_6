@@ -4,6 +4,8 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from datetime import datetime
 import os
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
 # Flask アプリの初期化
 app = Flask(__name__)
@@ -238,28 +240,56 @@ def edit_task(task_id):
         flash('権限がありません', 'error')
         return redirect(url_for('edit_routine', routine_id=task.routine_id))
 
+    # Spotifyの楽曲検索
+    search_results = []
     if request.method == 'POST':
-        task.task_name = request.form.get('task_name')
-        start_time = request.form.get('start_time')
-        end_time = request.form.get('end_time')
-        task.song_speed = request.form.get('song_speed')
-        task.song_mood = request.form.get('song_mood')
+        if 'search_spotify' in request.form:  # Spotify検索ボタン押下時
+            query = f"{task.song_speed} {task.song_mood}"
+            try:
+                results = sp.search(q=query, limit=3, type='track')
+                search_results = results['tracks']['items']
+            except Exception as e:
+                flash(f"Spotify検索でエラーが発生しました: {str(e)}", "error")
 
-        if not task.task_name or not start_time or not end_time:
-            flash('すべてのフィールドを入力してください', 'error')
-            return redirect(url_for('edit_task', task_id=task.id))
+        elif 'update_task' in request.form:  # タスクの更新
+            try:
+                # フォームから値を取得
+                task.task_name = request.form.get('task_name')
+                start_time = request.form.get('start_time')
+                end_time = request.form.get('end_time')
 
-        try:
-            task.start_time = datetime.strptime(start_time, "%H:%M").time()
-            task.end_time = datetime.strptime(end_time, "%H:%M").time()
-            db.session.commit()
-            flash('タスクが正常に更新されました', 'success')
-            return redirect(url_for('edit_routine', routine_id=task.routine_id))
-        except Exception as e:
-            flash(f'エラーが発生しました: {e}', 'error')
-            return redirect(url_for('edit_task', task_id=task.id))
+                # start_time, end_timeが空でないことを確認
+                if start_time and end_time:
+                    # 秒が含まれているか確認して処理
+                    if ":" in start_time and len(start_time.split(":")) == 3:
+                        task.start_time = datetime.strptime(start_time, "%H:%M:%S").time()
+                    else:
+                        task.start_time = datetime.strptime(start_time, "%H:%M").time()
 
-    return render_template('edit_task.html', task=task)
+                    if ":" in end_time and len(end_time.split(":")) == 3:
+                        task.end_time = datetime.strptime(end_time, "%H:%M:%S").time()
+                    else:
+                        task.end_time = datetime.strptime(end_time, "%H:%M").time()
+                else:
+                    flash("開始時間と終了時間は必須です", "error")
+                    return redirect(request.url)
+
+                # その他の項目
+                task.song_speed = request.form.get('song_speed')
+                task.song_mood = request.form.get('song_mood')
+                task.track_name = request.form.get('track_name')
+                task.track_url = request.form.get('track_url')
+
+                db.session.commit()
+                flash('タスクが正常に更新されました', 'success')
+                return redirect(url_for('edit_routine', routine_id=task.routine_id))
+
+            except ValueError:
+                flash("時間の形式が不正です。正しい形式は HH:MM です。", "error")
+            except Exception as e:
+                flash(f"エラーが発生しました: {str(e)}", "error")
+
+    return render_template('edit_task.html', task=task, search_results=search_results)
 
 
 @app.route('/tasks/delete/<int:task_id>', methods=['POST'])
@@ -279,6 +309,13 @@ def delete_task(task_id):
         flash(f'エラーが発生しました: {e}', 'error')
         return redirect(url_for('edit_routine', routine_id=task.routine_id))
 
+# Spotify API認証設定
+SPOTIFY_CLIENT_ID = "55c73c97a6584567bd2b74af20270e40"
+SPOTIFY_CLIENT_SECRET = "905b13c04e3b491aaf4515cb603dfeee"
+
+# Spotifyの認証情報
+client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET)
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 # 初回実行時のデータベース作成
 with app.app_context():

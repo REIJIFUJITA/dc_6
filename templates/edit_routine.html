@@ -28,6 +28,14 @@
             <p>開始時間: {{ task.start_time }} / 終了時間: {{ task.end_time }}</p>
             <p>曲のスピード: {{ task.song_speed }}</p>
             <p>曲のムード: {{ task.song_mood }}</p>
+                    
+            選択中の曲:
+            {% if task.track_name %}
+                {{ task.track_name }}
+            {% else %}
+                未設定
+            {% endif %}
+            <br><br>
             <a href="/tasks/edit/{{ task.id }}">編集</a>
             <form action="/tasks/delete/{{ task.id }}" method="POST" style="display:inline;">
                 <button type="submit">削除</button>

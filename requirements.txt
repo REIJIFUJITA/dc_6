@@ -5,3 +5,4 @@ google-auth-httplib2==0.1.0
 google-api-python-client==2.97.0
 flask-sqlalchemy
 flask-oauthlib
+spotipy

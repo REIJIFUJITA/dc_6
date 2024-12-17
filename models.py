@@ -29,3 +29,5 @@ class Task(db.Model):
     song_speed = db.Column(db.String(50), nullable=True)
     song_mood = db.Column(db.String(50), nullable=True)
     routine_id = db.Column(db.Integer, db.ForeignKey('routine.id'), nullable=False)
+    track_name = db.Column(db.String(120), nullable=True)  # 楽曲名
+    track_url = db.Column(db.String(200), nullable=True)   # Spotify URL

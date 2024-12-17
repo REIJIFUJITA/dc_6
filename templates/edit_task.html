@@ -9,18 +9,19 @@
     <h1>タスクを編集 (ルーティーン: {{ task.routine.name }})</h1>
 
     <form action="/tasks/edit/{{ task.id }}" method="POST">
+        <!-- 既存のフィールド -->
         <label for="task_name">タスク名:</label><br>
         <input type="text" id="task_name" name="task_name" value="{{ task.task_name }}" required><br><br>
 
-        <label for="start_time">開始時間 (HH:MM):</label><br>
+        <label for="start_time">開始時間:</label><br>
         <input type="time" id="start_time" name="start_time" value="{{ task.start_time }}" required><br><br>
 
-        <label for="end_time">終了時間 (HH:MM):</label><br>
+        <label for="end_time">終了時間:</label><br>
         <input type="time" id="end_time" name="end_time" value="{{ task.end_time }}" required><br><br>
 
         <label for="song_speed">曲のスピード:</label><br>
-            <select id="song_speed" name="song_speed" required>
-            <option value="" disabled selected>選択してください</option>
+        <select id="song_speed" name="song_speed" required>
+            <option value="{{ task.song_speed }}" selected>{{ task.song_speed }}</option>
             <option value="ゆっくり">ゆっくり</option>
             <option value="普通">普通</option>
             <option value="速い">速い</option>
@@ -29,9 +30,33 @@
         <label for="song_mood">曲のムード:</label><br>
         <input type="text" id="song_mood" name="song_mood" value="{{ task.song_mood }}"><br><br>
 
-        <button type="submit">更新</button>
+        <!-- 現在の曲名表示 -->
+        <h3>選択中の曲:</h3>
+        {% if task.track_name %}
+            {{ task.track_name }}
+        {% else %}
+            未設定
+        {% endif %}
+        <br><br>
+        <button type="submit" name="update_task">更新</button>
+        <!-- Spotify検索ボタン -->
+        <button type="submit" name="search_spotify">Spotifyで検索</button><br><br>
+
+        <!-- Spotify検索結果 -->
+        {% if search_results %}
+            <h3>検索結果:</h3>
+            {% for track in search_results %}
+                <input type="radio" name="track_name" value="{{ track.name }}"
+                    {% if task.track_name == track.name %} checked {% endif %} required>
+                {{ track.name }} by {{ track.artists[0].name }}
+                <a href="{{ track.external_urls.spotify }}" target="_blank">再生</a><br>
+                <input type="hidden" name="track_url" value="{{ track.external_urls.spotify }}">
+            {% endfor %}
+            <br>
+        {% endif %}
     </form>
 
-    <!-- <a href="/tasks/{{ task.routine.id }}">タスク一覧に戻る</a> -->
+    <!-- 戻るリンク -->
+    <a href="/tasks/{{ task.routine.id }}">タスク一覧に戻る</a>
 </body>
 </html>
