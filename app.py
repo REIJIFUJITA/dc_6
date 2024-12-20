@@ -4,6 +4,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from datetime import datetime
 import os
+import random
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -246,7 +247,7 @@ def edit_task(task_id):
         if 'search_spotify' in request.form:  # Spotify検索ボタン押下時
             query = f"{task.song_speed} {task.song_mood}"
             try:
-                results = sp.search(q=query, limit=3, type='track')
+                results = sp.search(q=query, limit=3, offset=random.randint(0, 50), type='track')
                 search_results = results['tracks']['items']
             except Exception as e:
                 flash(f"Spotify検索でエラーが発生しました: {str(e)}", "error")
