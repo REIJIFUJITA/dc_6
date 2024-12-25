@@ -251,7 +251,7 @@ def edit_task(task_id):
                     'part': 'snippet',
                     'q': query,
                     'type': 'video',
-                    'maxResults': 5,
+                    'maxResults': 10,
                     'videoCategoryId':10,
                     'key': YOUTUBE_API_KEY
                 }
