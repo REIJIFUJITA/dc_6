@@ -252,6 +252,7 @@ def edit_task(task_id):
                     'q': query,
                     'type': 'video',
                     'maxResults': 5,
+                    'videoCategoryId':10,
                     'key': YOUTUBE_API_KEY
                 }
                 response = requests.get(youtube_url, params=params)
