@@ -94,7 +94,9 @@ def profile():
     
     # 現在のユーザーのルーティーンを取得
     routines = Routine.query.filter_by(user_id=g.current_user.id).all()
-    return render_template('profile.html', name=g.current_user.name, email=g.current_user.email, routines=routines)
+    active_routines = Routine.query.filter_by(user_id=g.current_user.id, is_active=True).all()
+    
+    return render_template('profile.html', name=g.current_user.name, email=g.current_user.email, routines=routines, active_routines=active_routines)
 
     
 # ルーティーン作成フォームの表示
@@ -333,6 +335,11 @@ def delete_task(task_id):
 # Youtube API認証設定
 YOUTUBE_API_KEY = settings.AP # 環境変数の値をYOUTUBE_API_KEYに代入
 
+@app.route('/routines/stop_alarm/<int:routine_id>', methods=['POST'])
+def stop_alarm(routine_id):
+    # ここでアラームを停止する処理を行う（例: ユーザーがアラームをオフにした時に表示する）
+    flash('アラームが停止しました', 'success')
+    return redirect(url_for('profile'))
 
 # 初回実行時のデータベース作成
 with app.app_context():
