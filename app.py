@@ -4,6 +4,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from datetime import datetime
 import os
+import settings
 import requests
 
 # Flask アプリの初期化
@@ -329,7 +330,7 @@ def delete_task(task_id):
         return redirect(url_for('edit_routine', routine_id=task.routine_id))
 
 # Youtube API認証設定
-YOUTUBE_API_KEY = 'AIzaSyBQyEIZev1FkFEV4fZmom1JnqitntsUcYg'
+YOUTUBE_API_KEY = settings.AP # 環境変数の値をYOUTUBE_API_KEYに代入
 
 
 # 初回実行時のデータベース作成
