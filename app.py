@@ -4,9 +4,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from datetime import datetime
 import os
-import random
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+import requests
 
 # Flask アプリの初期化
 app = Flask(__name__)
@@ -241,16 +239,36 @@ def edit_task(task_id):
         flash('権限がありません', 'error')
         return redirect(url_for('edit_routine', routine_id=task.routine_id))
 
-    # Spotifyの楽曲検索
+    # YouTubeの動画検索
     search_results = []
     if request.method == 'POST':
-        if 'search_spotify' in request.form:  # Spotify検索ボタン押下時
+        if 'search_youtube' in request.form:  # YouTube検索ボタン押下時
             query = f"{task.song_speed} {task.song_mood}"
             try:
-                results = sp.search(q=query, limit=3, offset=random.randint(0, 50), type='track')
-                search_results = results['tracks']['items']
+                youtube_url = "https://www.googleapis.com/youtube/v3/search"
+                params = {
+                    'part': 'snippet',
+                    'q': query,
+                    'type': 'video',
+                    'maxResults': 5,
+                    'key': YOUTUBE_API_KEY
+                }
+                response = requests.get(youtube_url, params=params)
+                response.raise_for_status()  # HTTPエラーが発生した場合例外をスロー
+                data = response.json()
+
+                # 必要な情報を抽出
+                for item in data.get('items', []):
+                    video_id = item['id']['videoId']
+                    title = item['snippet']['title']
+                    thumbnail = item['snippet']['thumbnails']['default']['url']
+                    search_results.append({
+                        'video_id': video_id,
+                        'title': title,
+                        'thumbnail': thumbnail
+                    })
             except Exception as e:
-                flash(f"Spotify検索でエラーが発生しました: {str(e)}", "error")
+                flash(f"YouTube検索でエラーが発生しました: {str(e)}", "error")
 
         elif 'update_task' in request.form:  # タスクの更新
             try:
@@ -310,13 +328,9 @@ def delete_task(task_id):
         flash(f'エラーが発生しました: {e}', 'error')
         return redirect(url_for('edit_routine', routine_id=task.routine_id))
 
-# Spotify API認証設定
-SPOTIFY_CLIENT_ID = "55c73c97a6584567bd2b74af20270e40"
-SPOTIFY_CLIENT_SECRET = "905b13c04e3b491aaf4515cb603dfeee"
+# Youtube API認証設定
+YOUTUBE_API_KEY = 'AIzaSyBQyEIZev1FkFEV4fZmom1JnqitntsUcYg'
 
-# Spotifyの認証情報
-client_credentials_manager = SpotifyClientCredentials(client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET)
-sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 # 初回実行時のデータベース作成
 with app.app_context():

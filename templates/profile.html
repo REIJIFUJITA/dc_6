@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>プロフィール</title>
+    <!-- YouTube Player API スクリプト -->
+    <script src="{{ url_for('static', filename='player.js') }}"></script>
 </head>
 <body>
     <h1>ようこそ、{{ name }} さん！</h1>
@@ -23,6 +25,8 @@
                 <button type="submit">削除</button>
             </form>
         </div>
+        <!-- 動画埋め込み用のエリア -->
+         <div id="player"></div>
         {% endfor %}
     {% else %}
         <p>まだルーティーンがありません。</p>

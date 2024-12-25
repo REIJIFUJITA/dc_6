@@ -1,62 +1,109 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>タスクを編集</title>
-</head>
-<body>
+    <link rel="stylesheet" href="/static/style.css" />
+    <!-- YouTube Player API スクリプト -->
+    <script src="{{ url_for('static', filename='player.js') }}"></script>
+  </head>
+
+  <body>
     <h1>タスクを編集 (ルーティーン: {{ task.routine.name }})</h1>
 
     <form action="/tasks/edit/{{ task.id }}" method="POST">
-        <!-- 既存のフィールド -->
-        <label for="task_name">タスク名:</label><br>
-        <input type="text" id="task_name" name="task_name" value="{{ task.task_name }}" required><br><br>
+      <!-- 既存のフィールド -->
+      <label for="task_name">タスク名:</label><br />
+      <input
+        type="text"
+        id="task_name"
+        name="task_name"
+        value="{{ task.task_name }}"
+        required
+      /><br /><br />
 
-        <label for="start_time">開始時間:</label><br>
-        <input type="time" id="start_time" name="start_time" value="{{ task.start_time }}" required><br><br>
+      <label for="start_time">開始時間:</label><br />
+      <input
+        type="time"
+        id="start_time"
+        name="start_time"
+        value="{{ task.start_time }}"
+        required
+      /><br /><br />
 
-        <label for="end_time">終了時間:</label><br>
-        <input type="time" id="end_time" name="end_time" value="{{ task.end_time }}" required><br><br>
+      <label for="end_time">終了時間:</label><br />
+      <input
+        type="time"
+        id="end_time"
+        name="end_time"
+        value="{{ task.end_time }}"
+        required
+      /><br /><br />
 
-        <label for="song_speed">曲のスピード:</label><br>
-        <select id="song_speed" name="song_speed" required>
-            <option value="{{ task.song_speed }}" selected>{{ task.song_speed }}</option>
-            <option value="ゆっくり">ゆっくり</option>
-            <option value="普通">普通</option>
-            <option value="速い">速い</option>
-        </select><br><br>
+      <label for="song_speed">曲のスピード:</label><br />
+      <select id="song_speed" name="song_speed" required>
+        <option value="{{ task.song_speed }}" selected>
+          {{ task.song_speed }}
+        </option>
+        <option value="ゆっくり">ゆっくり</option>
+        <option value="普通">普通</option>
+        <option value="速い">速い</option></select
+      ><br /><br />
 
-        <label for="song_mood">曲のムード:</label><br>
-        <input type="text" id="song_mood" name="song_mood" value="{{ task.song_mood }}"><br><br>
+      <label for="song_mood">曲のムード:</label><br />
+      <input
+        type="text"
+        id="song_mood"
+        name="song_mood"
+        value="{{ task.song_mood }}"
+      /><br /><br />
 
-        <!-- 現在の曲名表示 -->
-        <h3>選択中の曲:</h3>
-        {% if task.track_name %}
-            {{ task.track_name }}
-        {% else %}
-            未設定
-        {% endif %}
-        <br><br>
-        <button type="submit" name="update_task">更新</button>
-        <!-- Spotify検索ボタン -->
-        <button type="submit" name="search_spotify">Spotifyで検索</button><br><br>
+      <!-- 現在の曲名表示 -->
+      <h3>選択中の曲:</h3>
+      {% if task.track_name %} {{ task.track_name }} {% else %} 未設定 {% endif
+      %}
+      <br /><br />
+      <button type="submit" name="update_task">更新</button>
+      <!-- Youtube検索ボタン -->
+      <button type="submit" name="search_youtube">Youtubeで検索</button
+      ><br /><br />
 
-        <!-- Spotify検索結果 -->
-        {% if search_results %}
-            <h3>検索結果:</h3>
-            {% for track in search_results %}
-                <input type="radio" name="track_name" value="{{ track.name }}"
-                    {% if task.track_name == track.name %} checked {% endif %} required>
-                {{ track.name }} by {{ track.artists[0].name }}
-                <a href="{{ track.external_urls.spotify }}" target="_blank">再生</a><br>
-                <input type="hidden" name="track_url" value="{{ track.external_urls.spotify }}">
-            {% endfor %}
-            <br>
-        {% endif %}
+      <!-- YouTube検索結果 -->
+      {% if search_results %}
+      <h3>検索結果:</h3>
+      <div class="search-results">
+        {% for video in search_results %}
+        <div class="search-item">
+          <input type="radio" name="track_name" value="{{ video.title }}"
+          data-video-id="{{ video.video_id }}" {% if task.track_name ==
+          video.title %} checked {% endif %} required >
+          <label>
+            {{ video.title }}
+            <a
+              href="https://www.youtube.com/watch?v={{ video.video_id }}"
+              target="_blank"
+              >視聴する</a
+            >
+          </label>
+          <br />
+          <img src="{{ video.thumbnail }}" alt="{{ video.title }}" />
+          <input
+            type="hidden"
+            name="track_url"
+            value="https://www.youtube.com/watch?v={{ video.video_id }}"
+          />
+        </div>
+        {% endfor %}
+      </div>
+
+      <h3>動画再生確認(再生できない動画があるため):</h3>
+      <!-- 動画埋め込み用のエリア -->
+      <div id="player"></div>
+      {% endif %}
     </form>
 
     <!-- 戻るリンク -->
     <a href="/routines/edit/{{task.routine.id}}">戻る</a>
-</body>
+  </body>
 </html>
