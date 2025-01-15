@@ -6,3 +6,4 @@ google-api-python-client==2.97.0
 flask-sqlalchemy
 flask-oauthlib
 spotipy
+gunicorn==19.9.0

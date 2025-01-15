@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>プロフィール</title>
-    <!-- YouTube Player API スクリプト -->
     <script src="{{ url_for('static', filename='player.js') }}"></script>
 </head>
 <body>
@@ -15,21 +14,55 @@
     <a href="/routines/new">新しいルーティーンを作成</a>
     <br><br>
 
-    {% if routines %}
-        {% for routine in routines %}
+    {% if active_routines %}
+        {% for routine in active_routines %}
         <div style="border: #ff69b4 solid 1px; font-size: 100%; padding: 10px; box-shadow: 0 5px 7px 0 #c0c0c0;width: 370px">
-            <p><b>{{ routine.name }}</b></br>起床時間:<b>{{ routine.wake_up_time }}</b> アクティブ状態:<b>{{routine.is_active}}</b></p>
+            <p><b>{{ routine.name }}</b><br>起床時間: <b>{{ routine.wake_up_time }}</b></p>
             <a href="/routines/edit/{{ routine.id }}">編集</a>
-            <!-- <a href="/tasks/{{ routine.id }}">タスクを見る</a> -->
             <form action="/routines/delete/{{ routine.id }}" method="POST" style="display:inline;">
                 <button type="submit">削除</button>
             </form>
+
+            <!-- アラーム停止ボタン -->
+            <form action="/routines/stop_alarm/{{ routine.id }}" method="POST" style="display:inline;">
+                <button type="submit">アラーム停止</button>
+            </form>
         </div>
-        <!-- 動画埋め込み用のエリア -->
-         <div id="player"></div>
         {% endfor %}
     {% else %}
-        <p>まだルーティーンがありません。</p>
+        <p>まだアクティブなルーティーンがありません。</p>
     {% endif %}
+    
+    <script>
+        // アラームの確認
+        function checkAlarm() {
+            const currentTime = new Date();
+            
+            // Jinja2のループ結果をJavaScriptに渡す
+            {% for routine in active_routines %}
+                const wakeUpTimeString = "{{ routine.wake_up_time }}";  // 例: "08:30"
+                const wakeUpTimeArray = wakeUpTimeString.split(':');  // 時間と分に分割
+                
+                const wakeUpHour = parseInt(wakeUpTimeArray[0], 10); // 時間
+                const wakeUpMinute = parseInt(wakeUpTimeArray[1], 10); // 分
+                
+                // 新しいDateオブジェクトを作成して起床時間を設定
+                const wakeUpTime = new Date();
+                wakeUpTime.setHours(wakeUpHour, wakeUpMinute, 0);
+                
+                // 現在の時間と比較
+                if (currentTime.getHours() === wakeUpTime.getHours() && currentTime.getMinutes() === wakeUpTime.getMinutes()) {
+                    // アラームを鳴らす
+                    // alert('起床時間です！アラームを鳴らします！');
+                    const alarmSound = new Audio('{{ url_for("static", filename="alart.mp3") }}'); // 音源ファイルを指定
+                    alarmSound.play(); // 音を再生
+                    // アラーム音などを再生することができます
+                }
+            {% endfor %}
+        }
+
+        // 定期的に時間を確認
+        setInterval(checkAlarm, 6000);  // 1分ごとに確認
+    </script>
 </body>
 </html>
