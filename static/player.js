@@ -1,3 +1,6 @@
+// youtube_player.js
+
+// YouTube Player APIを非同期で読み込む
 let tag = document.createElement("script");
 tag.src = "https://www.youtube.com/iframe_api";
 let firstScriptTag = document.getElementsByTagName("script")[0];
@@ -5,25 +8,34 @@ firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 let player;
 
+// プレーヤーの初期化
 function onYouTubeIframeAPIReady() {
   player = new YT.Player("player", {
-    height: "300",
-    width: "550",
-    videoId: "",
+    height: "360",
+    width: "640",
+    videoId: "", // 初期状態では空
     events: {
       onReady: onPlayerReady,
     },
   });
 }
 
-// プレイヤー準備完了時に呼ばれる
 function onPlayerReady(event) {
-  document.querySelectorAll('input[name="track_name"]').forEach((input) => {
-    input.addEventListener("change", function () {
-      const videoId = this.dataset.videoId;
-      if (videoId) {
-        player.loadVideoById(videoId); // 選択された動画を再生
+  console.log("YouTube Player is ready");
+}
+
+// ラジオボタンの変更イベントで動画を再生
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('input[name="selected_video"]').forEach((radio) => {
+    radio.addEventListener("change", (event) => {
+      const [videoId] = event.target.value.split("|");
+
+      // プレーヤーに動画をロードして再生
+      if (player && player.loadVideoById) {
+        player.loadVideoById(videoId);
+      } else {
+        console.error("YouTube Player is not initialized");
       }
     });
   });
-}
+});

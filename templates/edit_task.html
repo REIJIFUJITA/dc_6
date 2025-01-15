@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>タスクを編集</title>
     <link rel="stylesheet" href="/static/style.css" />
-    <!-- YouTube Player API スクリプト -->
-    <script src="{{ url_for('static', filename='player.js') }}"></script>
   </head>
 
   <body>
@@ -75,9 +73,9 @@
       <div class="search-results">
         {% for video in search_results %}
         <div class="search-item">
-          <input type="radio" name="track_name" value="{{ video.title }}"
-          data-video-id="{{ video.video_id }}" {% if task.track_name ==
-          video.title %} checked {% endif %} required >
+          <input type="radio" name="selected_video" value="{{ video.video_id
+          }}|{{ video.title }}" data-video-id="{{ video.video_id }}" {% if
+          task.track_name == video.title %} checked {% endif %} required >
           <label>
             {{ video.title }}
             <a
@@ -88,22 +86,37 @@
           </label>
           <br />
           <img src="{{ video.thumbnail }}" alt="{{ video.title }}" />
-          <input
-            type="hidden"
-            name="track_url"
-            value="https://www.youtube.com/watch?v={{ video.video_id }}"
-          />
         </div>
         {% endfor %}
       </div>
 
-      <h3>動画再生確認(再生できない動画があるため):</h3>
-      <!-- 動画埋め込み用のエリア -->
-      <div id="player"></div>
+      <input type="hidden" id="selected_video_id" name="track_url" />
+      <input type="hidden" id="selected_video_title" name="track_name" />
+
+      <script>
+        // ラジオボタンの変更イベントで選択内容を保存
+        document
+          .querySelectorAll('input[name="selected_video"]')
+          .forEach((radio) => {
+            radio.addEventListener("change", (event) => {
+              const [videoId, videoTitle] = event.target.value.split("|");
+              document.getElementById("selected_video_id").value = videoId;
+              document.getElementById("selected_video_title").value =
+                videoTitle;
+            });
+          });
+      </script>
       {% endif %}
     </form>
 
+    <h3>動画再生確認(再生できない動画があるため):</h3>
+    <!-- 動画埋め込み用のエリア -->
+    <div id="player"></div>
+
     <!-- 戻るリンク -->
     <a href="/routines/edit/{{task.routine.id}}">戻る</a>
+
+    <!-- YouTube Player API スクリプト -->
+    <script src="{{ url_for('static', filename='player.js') }}"></script>
   </body>
 </html>
