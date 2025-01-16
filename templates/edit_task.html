@@ -90,21 +90,36 @@
         {% endfor %}
       </div>
 
-      <input type="hidden" id="selected_video_id" name="track_url" />
-      <input type="hidden" id="selected_video_title" name="track_name" />
+      <input type="hidden" id="track_url" name="track_url" />
+      <input type="hidden" id="track_name" name="track_name" />
 
       <script>
-        // ラジオボタンの変更イベントで選択内容を保存
+        // ラジオボタンの変更イベントで選択内容を更新
         document
           .querySelectorAll('input[name="selected_video"]')
           .forEach((radio) => {
             radio.addEventListener("change", (event) => {
               const [videoId, videoTitle] = event.target.value.split("|");
-              document.getElementById("selected_video_id").value = videoId;
-              document.getElementById("selected_video_title").value =
-                videoTitle;
+
+              // 選択した動画のURLとタイトルを隠しフィールドに保存
+              document.getElementById(
+                "track_url"
+              ).value = `https://www.youtube.com/watch?v=${videoId}`;
+              document.getElementById("track_name").value = videoTitle;
             });
           });
+
+        // ページロード時に選択済みの値を設定
+        const checkedRadio = document.querySelector(
+          'input[name="selected_video"]:checked'
+        );
+        if (checkedRadio) {
+          const [videoId, videoTitle] = checkedRadio.value.split("|");
+          document.getElementById(
+            "track_url"
+          ).value = `https://www.youtube.com/watch?v=${videoId}`;
+          document.getElementById("track_name").value = videoTitle;
+        }
       </script>
       {% endif %}
     </form>
