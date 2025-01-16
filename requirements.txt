@@ -7,3 +7,4 @@ flask-sqlalchemy
 flask-oauthlib
 spotipy
 gunicorn==19.9.0
+python-dotenv
