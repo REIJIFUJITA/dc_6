@@ -35,8 +35,8 @@ def login():
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
-        # redirect_uri="http://127.0.0.1:5000/callback"
-        redirect_uri="https://dc-6.onrender.com/callback"
+        redirect_uri="http://127.0.0.1:5000/callback"
+        # redirect_uri="https://dc-6.onrender.com/callback"
     )
     auth_url, state = flow.authorization_url()
     session["state"] = state
@@ -50,8 +50,8 @@ def callback():
             CLIENT_SECRETS_FILE,
             scopes=SCOPES,
             state=session["state"],
-            # redirect_uri="http://127.0.0.1:5000/callback"
-            redirect_uri="https://dc-6.onrender.com/callback"
+            redirect_uri="http://127.0.0.1:5000/callback"
+            # redirect_uri="https://dc-6.onrender.com/callback"
         )
         # 認証コードを交換してトークンを取得
         flow.fetch_token(authorization_response=request.url)
@@ -97,8 +97,8 @@ def profile():
     # 現在のユーザーのルーティーンを取得
     routines = Routine.query.filter_by(user_id=g.current_user.id).all()
     active_routines = Routine.query.filter_by(user_id=g.current_user.id, is_active=True).all()
-    
-    return render_template('profile.html', name=g.current_user.name, email=g.current_user.email, routines=routines, active_routines=active_routines)
+    not_active_routines = Routine.query.filter_by(user_id=g.current_user.id, is_active=False).all()
+    return render_template('profile.html', name=g.current_user.name, email=g.current_user.email, routines=routines, active_routines=active_routines, not_active_routines=not_active_routines)
 
     
 # ルーティーン作成フォームの表示
